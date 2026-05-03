@@ -348,29 +348,6 @@ cd ~/chief-workspace && git init && git add -A && git commit -m "Initial Chief w
 
 **Rule of thumb:** If you've written to 3+ files or added meaningful new context, commit.
 
-## Hermes-Specific Adaptations
-
-### OpenClaw → Hermes Mapping
-
-| OpenClaw | Hermes |
-|---|---|
-| `sessions_spawn` | `delegate_task` |
-| `sessions_send` | `delegate_task` with context from previous results |
-| `MEMORY.md` | Hermes `memory` tool (compact) + workspace `memory/` (detailed) |
-| `USER.md` | Hermes `memory` tool (target='user') |
-| `IDENTITY.md` | Hermes `memory` tool (target='memory') |
-| `SOUL.md` | Hermes `memory` tool (target='memory') |
-| `BOOTSTRAP.md` | `references/bootstrap.md` in skill |
-| Cron via payload | Hermes `cronjob` tool |
-| File reads/writes | Hermes `read_file` / `write_file` / `patch` |
-
-### Key Differences
-
-1. **No persistent sessions** — Hermes `delegate_task` spawns isolated subagents. Use `delegate_task(tasks=[...])` for parallel work, chain sequential steps by passing context.
-2. **Memory is split** — Use Hermes `memory` tool for cross-session facts (compact), workspace files for detailed operational context.
-3. **Cron jobs** — Use `cronjob` tool to schedule reflection cycles. Prompts are self-contained (no session context).
-4. **No BOOTSTRAP.md deletion** — The skill always exists. On first run, check if workspace exists; if not, bootstrap.
-
 ## Reference Files
 
 - `references/bootstrap.md` — Full onboarding conversation guide
