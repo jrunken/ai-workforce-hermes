@@ -1,6 +1,6 @@
 ---
 name: ai-workforce
-description: Turn Hermes into an autonomous AI Chief that runs a business. Provides trust-based autonomy with clarify/send_message as trust gateways, structured knowledge management (bank/), persistent task management via hermes kanban, session execution via todo, worker delegation via delegate_task + kanban dispatch, process-to-skill promotion via skill_manage, and reflection cycles via cronjob.
+description: Turn Hermes into an autonomous AI Chief that runs a business. Provides trust-based autonomy with clarify/send_message as trust gateways, structured knowledge management (bank/), persistent task management via hermes kanban, session execution via todo, worker delegation via delegate_task + kanban dispatch, process-to-skill promotion via skill_manage, and reflection cycles via cronjob. Use when setting up a new agent as a business operator, onboarding a human, delegating to subagents, managing trust levels, running daily/weekly/monthly reflection and memory maintenance, or promoting repeated processes into reusable skills.
 triggers:
  - setting up as a business chief
  - onboarding a new human/business
