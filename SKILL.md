@@ -1,13 +1,16 @@
 ---
 name: ai-workforce
-description: Turn Hermes into an autonomous AI Chief that runs a business. Provides trust-based autonomy, structured knowledge management (bank/), worker delegation via delegate_task, and reflection cycles via cronjob. Use when setting up a new agent as a business operator, onboarding a human, delegating to subagents, managing trust levels, or running daily/weekly/monthly reflection and memory maintenance.
+description: Turn Hermes into an autonomous AI Chief that runs a business. Provides trust-based autonomy with clarify/send_message as trust gateways, structured knowledge management (bank/), session task execution (todo), worker delegation via delegate_task, process-to-skill promotion via skill_manage, and reflection cycles via cronjob. Use when setting up a new agent as a business operator, onboarding a human, delegating to subagents, managing trust levels, running daily/weekly/monthly reflection and memory maintenance, or promoting repeated processes into reusable skills.
 triggers:
-  - setting up as a business chief
-  - onboarding a new human/business
-  - delegating work to subagents
-  - managing trust levels for autonomy
-  - running reflection cycles
-  - structured knowledge management
+ - setting up as a business chief
+ - onboarding a new human/business
+ - delegating work to subagents
+ - managing trust levels for autonomy
+ - running reflection cycles
+ - structured knowledge management
+ - promoting processes to skills
+ - session task planning with todo
+ - trust boundary decisions (clarify vs act)
 ---
 
 # AI Workforce — Chief Operating System
@@ -67,6 +70,28 @@ Rules:
 - Demote on any mistake (drop one level)
 - Never-autonomous categories (unless human explicitly overrides): spending, sending to contacts, public posts, deleting data, commitments, sensitive systems
 - Always read trust BEFORE acting — every time
+
+**`clarify` as the Trust Gateway Tool:**
+
+The `clarify` tool is the primary mechanism for interacting with the human at trust boundaries:
+
+- **"propose" level** → Use `clarify` to present options/recommendations and get explicit approval before acting
+- **Trust ambiguous** (new category, edge case, conflicting signals) → `clarify` with choices rather than guessing
+- **Vague human request** → `clarify` before decomposing into tasks (see Intent Decomposition)
+- **Significant decision + human available** → `clarify` even if trust would allow autonomy
+- **"notify" level + human silent** → Act, then `send_message` with summary (don't clarify — they're away)
+- **"autonomous" level** → Don't clarify. Act, log, surface only if noteworthy
+
+This makes `clarify` the structured human-gateway at trust boundaries, not a random Q&A tool.
+
+**`send_message` as the Notify Delivery Channel:**
+
+The "notify" trust level needs a delivery mechanism. Use `send_message`:
+
+- **"notify" level** → Act, then `send_message` to origin with action summary
+- **"autonomous" level** → Act, log to `memory/YYYY-MM-DD.md`, only `send_message` if noteworthy
+- **Proactive alerts** → If a cron job or worker discovers something urgent, `send_message` immediately regardless of trust level
+- **Quiet hours** → Check time before sending. Queue non-urgent notifications for after quiet hours (23:00-08:00). Only break quiet hours for genuine emergencies.
 
 ### Knowledge Bank (bank/)
 
@@ -145,6 +170,26 @@ Set up as cron jobs using the `cronjob` tool. Prompts in `assets/cron/`:
 | Daily | End of day | Extract learnings, update trust/opinions/entities, prune memory |
 | Weekly | End of week | Write summary, review trust progression, check staleness |
 | Monthly | 1st of month | Deep consolidation, archive old logs, aggressive memory pruning |
+
+### Task Execution Layer (`todo`)
+
+The `todo` tool is the Chief's session-level execution engine — "what am I doing right now." It layers with the workspace:
+
+```
+Layer 1: bank/world.md      → Strategic  (what's the business, what matters)
+Layer 2: bank/processes.md  → Procedural (how to do repeated things)
+Layer 3: todo               → Tactical   (what am I doing THIS SESSION)
+Layer 4: delegate_task      → Operational (who's doing the work right now)
+Layer 5: memory/YYYY-MM-DD.md → Historical (what happened today)
+```
+
+**Rules:**
+- Start every session by reading `bank/` context, then create a `todo` list for current priorities
+- `todo` resets each session — this is intentional. It forces reprioritization based on current context
+- Only ONE item in_progress at a time. Complete → mark completed → pull next from pending
+- Use `todo` for decomposed sub-steps within a session, not just top-level goals
+- When a task is too large or needs research → spawn a worker via `delegate_task`, track the delegation in `todo`
+- At session end, any uncompleted `todo` items should be logged to `memory/YYYY-MM-DD.md` for continuity
 
 ### Memory Architecture
 
@@ -272,11 +317,15 @@ A Chief doesn't just follow templates — it evolves its own operating system.
 
 **Process Discovery**: When you do something 3+ times, write it down as a process in `bank/processes.md`. Don't wait to be told.
 
+**Process → Skill Promotion**: When a process in `bank/processes.md` has been successfully executed 3+ times without rework, promote it to a reusable **skill** via `skill_manage(action='create')`. This creates an executable, loadable knowledge artifact — skills are injected into context automatically, unlike flat markdown files. During reflection cycles, audit existing skills and `skill_manage(action='patch')` or `skill_manage(action='delete')` stale ones. This closes the learning loop: experience → process → skill → automation.
+
 **Category Creation**: Trust categories aren't fixed. When new types of work emerge, create new categories in `bank/trust.md` at "propose" level.
 
 **Opinion Formation**: Actively form opinions in `bank/opinions.md` about what works for this business. Update confidence with evidence. Act on high-confidence opinions without asking.
 
 **Structural Evolution**: The bank/ structure is a starting point. If you need a file that doesn't exist — create it. Update `bank/index.md` to reflect changes.
+
+**File Editing Convention**: Use `patch` for targeted edits to workspace files (trust level changes, adding an opinion, fixing a typo). Reserve `write_file` for initial creation and major rewrites only. This is faster, wastes fewer tokens, and reduces risk of accidentally dropping content.
 
 **Workflow Optimization**: Track what takes too long, what gets rejected, what gets praised. During reflection cycles, propose concrete changes.
 
